@@ -27,12 +27,13 @@
 
 ## 1. Project Overview
 
-A **premium cake shop website** that serves two audiences:
+A **premium cake shop website** that serves three audiences:
 
 | Audience | Experience |
 |----------|-----------|
-| **Customers** | Browse cakes, view about/story, see latest updates, explore favorites, find shop location, read custom pages |
-| **Admins** | Full CMS to manage every section — hero, about, favorites, updates, header, footer, custom pages |
+| **Visitors (Guest)** | Browse cakes, view about/story, see latest updates, explore favorites, find shop location, read custom pages |
+| **Users (Registered)** | All visitor features + login/register, leave reviews & ratings, manage profile, wishlist cakes |
+| **Admins** | Full CMS to manage every section — hero, about, favorites, updates, header, footer, custom pages, manage users |
 
 ### Core Principles
 
@@ -53,12 +54,15 @@ cake-shop/
 │   │   ├── page.tsx                 # Home page (Hero, Favorites, Updates, Visit)
 │   │   ├── about/
 │   │   │   └── page.tsx             # About / Our Story page
-│   │   ├── menu/
-│   │   │   └── page.tsx             # Full cake menu / catalog
+│   │   │   ├── menu/
+│   │   │   └── page.tsx             # Full cake menu / catalog (filter by caketype, type, category)
 │   │   ├── gallery/
 │   │   │   └── page.tsx             # Cake gallery
 │   │   ├── contact/
 │   │   │   └── page.tsx             # Contact & location
+│   │   ├── cake/
+│   │   │   └── [slug]/
+│   │   │       └── page.tsx         # Single cake detail page (reviews, add to cart)
 │   │   └── [slug]/
 │   │       └── page.tsx             # Dynamic custom pages
 │   │
@@ -74,8 +78,18 @@ cake-shop/
 │   │   │   │   └── page.tsx         # Manage hero section
 │   │   │   ├── about/
 │   │   │   │   └── page.tsx         # Manage about section
-│   │   │   ├── favorites/
-│   │   │   │   └── page.tsx         # Manage "Our Favorites" items
+│   │   │   ├── cakes/
+│   │   │   │   └── page.tsx         # Manage cakes / products
+│   │   │   ├── addons/
+│   │   │   │   └── page.tsx         # Manage addon items (candles, toppers, etc.)
+│   │   │   ├── orders/
+│   │   │   │   ├── page.tsx         # View/manage all orders
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx     # Single order detail (update status)
+│   │   │   ├── users/
+│   │   │   │   ├── page.tsx         # Manage all users
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx     # View/edit single user
 │   │   │   ├── updates/
 │   │   │   │   └── page.tsx         # Manage latest updates / blog
 │   │   │   ├── visit/
@@ -92,6 +106,30 @@ cake-shop/
 │   │   │       └── page.tsx         # Site-wide settings (SEO, colors)
 │   │   └── middleware.ts            # (handled at root level)
 │   │
+│   ├── (auth)/                      # Auth route group
+│   │   ├── login/
+│   │   │   └── page.tsx             # User login page
+│   │   └── register/
+│   │       └── page.tsx             # User registration page
+│   │
+│   ├── (user)/                      # User route group (auth required)
+│   │   ├── cart/
+│   │   │   └── page.tsx             # Shopping cart page
+│   │   ├── checkout/
+│   │   │   └── page.tsx             # Checkout page (address, payment)
+│   │   ├── orders/
+│   │   │   ├── page.tsx             # User's order history
+│   │   │   └── [id]/
+│   │   │       └── page.tsx         # Single order detail + tracking
+│   │   ├── order-success/
+│   │   │   └── page.tsx             # Order confirmation page
+│   │   ├── profile/
+│   │   │   ├── page.tsx             # User profile page
+│   │   │   ├── wishlist/
+│   │   │   │   └── page.tsx         # User's wishlisted cakes
+│   │   │   └── reviews/
+│   │   │       └── page.tsx         # User's submitted reviews
+│   │
 │   ├── api/
 │   │   ├── auth/
 │   │   │   └── [...nextauth]/
@@ -105,8 +143,14 @@ cake-shop/
 │   │   │   │   └── route.ts         # CRUD for hero
 │   │   │   ├── about/
 │   │   │   │   └── route.ts         # CRUD for about
-│   │   │   ├── favorites/
-│   │   │   │   └── route.ts         # CRUD for favorites
+│   │   │   ├── cakes/
+│   │   │   │   └── route.ts         # CRUD for cakes
+│   │   │   ├── addons/
+│   │   │   │   └── route.ts         # CRUD for addon items
+│   │   │   ├── orders/
+│   │   │   │   └── route.ts         # View/update orders
+│   │   │   ├── users/
+│   │   │   │   └── route.ts         # Manage users
 │   │   │   ├── updates/
 │   │   │   │   └── route.ts         # CRUD for updates
 │   │   │   ├── visit/
@@ -117,9 +161,31 @@ cake-shop/
 │   │   │   │   └── route.ts         # Upload / delete media
 │   │   │   └── settings/
 │   │   │       └── route.ts         # Site settings
+│   │   ├── user/
+│   │   │   ├── register/
+│   │   │   │   └── route.ts         # User registration
+│   │   │   ├── profile/
+│   │   │   │   └── route.ts         # Get/update user profile
+│   │   │   ├── wishlist/
+│   │   │   │   └── route.ts         # Add/remove wishlist items
+│   │   │   ├── reviews/
+│   │   │   │   └── route.ts         # Submit/edit/delete reviews
+│   │   │   ├── cart/
+│   │   │   │   └── route.ts         # Get/update cart
+│   │   │   ├── checkout/
+│   │   │   │   └── route.ts         # Create order + Razorpay order
+│   │   │   ├── orders/
+│   │   │   │   └── route.ts         # Get user's orders
+│   │   │   └── payment/
+│   │   │       ├── create/
+│   │   │       │   └── route.ts     # Create Razorpay order
+│   │   │       └── verify/
+│   │   │           └── route.ts     # Verify Razorpay payment signature
 │   │   └── public/
 │   │       ├── content/
 │   │       │   └── route.ts         # Fetch all public content
+│   │       ├── cakes/
+│   │       │   └── route.ts         # Fetch cakes (public, with filters)
 │   │       └── pages/
 │   │           └── [slug]/
 │   │               └── route.ts     # Fetch single custom page
@@ -135,10 +201,20 @@ cake-shop/
 │   │   ├── Footer.tsx
 │   │   ├── HeroSection.tsx
 │   │   ├── AboutSection.tsx
-│   │   ├── FavoritesSection.tsx
+│   │   ├── CakesSection.tsx
 │   │   ├── LatestUpdates.tsx
 │   │   ├── VisitSection.tsx
 │   │   ├── CakeCard.tsx
+│   │   ├── CakeDetail.tsx           # Single cake page with reviews
+│   │   ├── AddToCartButton.tsx      # Add cake + addons to cart
+│   │   ├── CartDrawer.tsx           # Slide-out cart preview
+│   │   ├── CartItem.tsx             # Single cart item row
+│   │   ├── CheckoutForm.tsx         # Address + delivery details form
+│   │   ├── OrderSummary.tsx         # Order summary with totals
+│   │   ├── RazorpayButton.tsx       # Razorpay payment button
+│   │   ├── AddonPicker.tsx          # Select addons (candles, toppers)
+│   │   ├── OrderCard.tsx            # Order history card
+│   │   ├── OrderTracking.tsx        # Order status timeline
 │   │   └── AnimatedSection.tsx      # Scroll-triggered animations
 │   │
 │   ├── admin/                       # Admin panel components
@@ -149,7 +225,11 @@ cake-shop/
 │   │   ├── MediaPicker.tsx
 │   │   ├── ContentForm.tsx          # Reusable form component
 │   │   ├── DataTable.tsx
-│   │   └── DashboardStats.tsx
+│   │   ├── DashboardStats.tsx
+│   │   ├── OrdersTable.tsx          # Admin orders list with filters
+│   │   ├── OrderDetail.tsx          # Admin order detail + status update
+│   │   ├── AddonManager.tsx         # Admin addon CRUD
+│   │   └── UsersTable.tsx           # Admin user management
 │   │
 │   └── ui/                          # Shared UI primitives
 │       ├── Button.tsx
@@ -168,7 +248,10 @@ cake-shop/
 │   │   ├── Footer.ts
 │   │   ├── Hero.ts
 │   │   ├── About.ts
-│   │   ├── Favorite.ts
+│   │   ├── Cake.ts
+│   │   ├── Addon.ts
+│   │   ├── Cart.ts
+│   │   ├── Order.ts
 │   │   ├── Update.ts
 │   │   ├── Visit.ts
 │   │   ├── CustomPage.ts
@@ -179,7 +262,11 @@ cake-shop/
 │   │   ├── footer.actions.ts
 │   │   ├── hero.actions.ts
 │   │   ├── about.actions.ts
-│   │   ├── favorites.actions.ts
+│   │   ├── cakes.actions.ts
+│   │   ├── addons.actions.ts
+│   │   ├── cart.actions.ts
+│   │   ├── checkout.actions.ts
+│   │   ├── orders.actions.ts
 │   │   ├── updates.actions.ts
 │   │   ├── visit.actions.ts
 │   │   ├── pages.actions.ts
@@ -188,6 +275,7 @@ cake-shop/
 │   │   ├── header.schema.ts
 │   │   ├── hero.schema.ts
 │   │   └── ...
+│   ├── razorpay.ts                  # Razorpay SDK instance
 │   └── utils.ts                     # Helper functions
 │
 ├── hooks/                           # Custom React hooks
@@ -221,7 +309,8 @@ cake-shop/
 | Framework | **Next.js 15** (App Router) | SSR, SSG, API routes, Server Components |
 | Database | **MongoDB Atlas** | Document-based storage for CMS content |
 | ODM | **Mongoose 8** | Schema validation, queries, middleware |
-| Auth | **NextAuth.js v5** (Auth.js) | Admin authentication with credentials/OAuth |
+| Auth | **NextAuth.js v5** (Auth.js) | Authentication with credentials/OAuth |
+| Payments | **Razorpay** | Payment gateway for orders & checkout |
 | Styling | **Tailwind CSS 4** | Utility-first styling |
 | Animations | **Framer Motion** | Scroll animations, page transitions |
 
@@ -235,6 +324,7 @@ cake-shop/
 | **Uploadthing** or **Cloudinary** | Image/media uploads |
 | **Sonner** | Toast notifications |
 | **Lucide React** | Icon library |
+| **razorpay** | Server-side Razorpay SDK for order/payment creation |
 
 ### UI Enhancement
 
@@ -293,7 +383,10 @@ cake-shop/
                │  │  - footers         │ │
                │  │  - heroes          │ │
                │  │  - abouts          │ │
-               │  │  - favorites       │ │
+               │  │  - cakes            │ │
+               │  │  - addons          │ │
+               │  │  - carts           │ │
+               │  │  - orders          │ │
                │  │  - updates         │ │
                │  │  - visits          │ │
                │  │  - custompages     │ │
@@ -316,11 +409,12 @@ cake-shop/
 
 | Route | Page | Data Source |
 |-------|------|------------|
-| `/` | Home | Hero, Favorites, Updates, Visit |
+| `/` | Home | Hero, Featured Cakes, Updates, Visit |
 | `/about` | About / Our Story | About collection |
-| `/menu` | Cake Menu / Catalog | Favorites + categories |
+| `/menu` | Cake Menu / Catalog | Cakes collection (filter by caketype, type, category) |
 | `/gallery` | Photo Gallery | Media collection |
 | `/contact` | Contact & Location | Visit collection |
+| `/cake/[slug]` | Cake Detail | Single cake with reviews, add to cart |
 | `/[slug]` | Custom Pages | CustomPages collection |
 
 ### Admin Routes (Auth Required — Admin Role Only)
@@ -332,7 +426,12 @@ cake-shop/
 | `/admin/footer` | Footer Manager | Footer links, social, copyright |
 | `/admin/hero` | Hero Manager | Hero images, text, CTA |
 | `/admin/about` | About Manager | Story, team, images |
-| `/admin/favorites` | Favorites Manager | Featured cakes CRUD |
+| `/admin/cakes` | Cakes Manager | Cakes / products CRUD |
+| `/admin/addons` | Addons Manager | Addon items CRUD (candles, toppers, etc.) |
+| `/admin/orders` | Orders Manager | View all orders, update status, filter |
+| `/admin/orders/[id]` | Order Detail | View order detail, update status |
+| `/admin/users` | Users Manager | View/manage all registered users |
+| `/admin/users/[id]` | User Detail | View/edit user, toggle active |
 | `/admin/updates` | Updates Manager | Blog / news CRUD |
 | `/admin/visit` | Visit Manager | Address, hours, map embed |
 | `/admin/pages` | Custom Pages | Create/edit/delete pages |
@@ -341,10 +440,25 @@ cake-shop/
 | `/admin/media` | Media Library | Upload, browse, delete images |
 | `/admin/settings` | Site Settings | SEO defaults, theme colors |
 
+### User Routes (Auth Required — Any Authenticated User)
+
+| Route | Page | Purpose |
+|-------|------|---------|
+| `/cart` | Shopping Cart | View cart, update quantities, remove items |
+| `/checkout` | Checkout | Enter delivery address, select slot, pay |
+| `/orders` | My Orders | Order history with status |
+| `/orders/[id]` | Order Detail | Single order with tracking timeline |
+| `/order-success` | Order Confirmation | Success page after payment |
+| `/profile` | User Profile | View/edit profile, change password |
+| `/profile/wishlist` | Wishlist | Saved/wishlisted cakes |
+| `/profile/reviews` | My Reviews | Reviews left by the user |
+
 ### Auth Routes
 
 | Route | Page |
 |-------|------|
+| `/login` | User & Admin login page |
+| `/register` | User registration page |
 | `/admin/login` | Admin login page |
 
 ---
@@ -356,17 +470,31 @@ cake-shop/
 ```typescript
 // lib/models/User.ts
 {
-  name:          String,          // "Admin Name"
-  email:         String (unique), // "admin@cakeshop.com"
+  name:          String,          // "John Doe"
+  email:         String (unique), // "john@example.com"
   password:      String,          // bcrypt hashed
-  role:          String,          // "admin" | "superadmin"
+  role:          String,          // "user" | "admin" | "superadmin"
   avatar:        String,          // URL
+  phone:         String,          // Optional phone number
+  address: {
+    street:      String,
+    city:        String,
+    state:       String,
+    zipCode:     String,
+    country:     String
+  },
+  wishlist:      [ObjectId],      // ref: Cake — list of wishlisted cake IDs
   isActive:      Boolean,         // default: true
   lastLogin:     Date,
   createdAt:     Date,
   updatedAt:     Date
 }
 ```
+
+> **Roles:**
+> - `user` — Default role for registered customers. Can browse, leave reviews, manage wishlist & profile.
+> - `admin` — Can access the admin panel and manage all CMS content.
+> - `superadmin` — Full access including user management and site settings.
 
 ### Header
 
@@ -443,25 +571,45 @@ cake-shop/
 }
 ```
 
-### Favorite (Our Favorites)
+### Cake (Product)
 
 ```typescript
-// lib/models/Favorite.ts
+// lib/models/Cake.ts
+
+const priceSchema = {
+  weight:        Number,          // Weight in grams or kilograms
+  costPrice:     Number,          // Cost price for the specified weight
+  sellPrice:     Number,          // Selling price for the specified weight
+};
+
+const reviewSchema = {
+  userId:        ObjectId (ref: User),  // Reviewer's user ID
+  username:      String,          // Reviewer's display name
+  rating:        Number,          // 1 to 5
+  comment:       String,          // Review text
+  createdAt:     Date,
+  updatedAt:     Date
+};
+
 {
   name:          String,          // "Red Velvet Dream"
+  description:   String,          // Detailed description
+  caketype:      String,          // "cake" | "pastries" (enum)
+  type:          String,          // "eggless" | "egg" (enum)
+  category:      String,          // "Wedding" | "Birthday" | "Custom" | "Anniversary"
   slug:          String (unique), // "red-velvet-dream"
-  description:   String,          // Short description
-  price:         Number,          // 45.99
   images: [{
     url:         String,
     alt:         String
   }],
-  category:      String,          // "Wedding" | "Birthday" | "Custom"
-  tags:          [String],        // ["chocolate", "premium"]
-  isFeatured:    Boolean,         // Show on homepage
-  isAvailable:   Boolean,
-  rating:        Number,          // Average rating
-  order:         Number,          // Display order
+  prices:        [priceSchema],   // Array of weight-based pricing options
+  tags:          [String],        // ["chocolate", "premium", "bestseller"]
+  isFeatured:    Boolean,         // Show on homepage "Our Favorites"
+  isAvailable:   Boolean,         // Currently available for order
+  reviews:       [reviewSchema],  // Embedded user reviews
+  averageRating: Number,          // Computed average of all review ratings
+  totalReviews:  Number,          // Count of reviews
+  order:         Number,          // Display order for featured section
   createdAt:     Date,
   updatedAt:     Date
 }
@@ -616,9 +764,472 @@ cake-shop/
 }
 ```
 
+### Addon (Admin-Managed Add-on Items)
+
+```typescript
+// lib/models/Addon.ts
+{
+  name:          String,          // "Birthday Candles (Pack of 10)"
+  slug:          String (unique), // "birthday-candles-10"
+  description:   String,          // "Colorful birthday candles"
+  category:      String,          // "candles" | "toppers" | "decorations" | "packaging" | "extras"
+  image:         String,          // Cloudinary URL
+  price:         Number,          // 49 (INR)
+  stock:         Number,          // Available quantity
+  isAvailable:   Boolean,         // default: true
+  order:         Number,          // Display order
+  createdAt:     Date,
+  updatedAt:     Date
+}
+```
+
+> **Addon Categories:**
+> - `candles` — Birthday candles, number candles, sparkler candles
+> - `toppers` — Cake toppers, figurines, message plaques
+> - `decorations` — Sprinkles, edible flowers, fondant shapes
+> - `packaging` — Gift boxes, ribbons, carry bags
+> - `extras` — Knife & server set, plates, napkins
+
+### Cart
+
+```typescript
+// lib/models/Cart.ts
+{
+  userId:        ObjectId (ref: User),   // Cart owner
+  items: [{
+    cakeId:      ObjectId (ref: Cake),   // The cake product
+    name:        String,                  // Snapshot of cake name
+    image:       String,                  // Snapshot of cake image
+    priceOption: {
+      weight:    Number,                  // Selected weight (e.g., 500g, 1kg)
+      sellPrice: Number                   // Price at time of adding
+    },
+    quantity:    Number,                  // default: 1
+    cakeMessage: String,                  // "Happy Birthday Rahul!" (optional)
+    addons: [{
+      addonId:   ObjectId (ref: Addon),
+      name:      String,                  // Snapshot of addon name
+      price:     Number,                  // Price at time of adding
+      quantity:  Number
+    }]
+  }],
+  totalAmount:   Number,                  // Computed total (all items + addons)
+  updatedAt:     Date
+}
+```
+
+### Order
+
+```typescript
+// lib/models/Order.ts
+{
+  orderId:       String (unique),  // "ORD-20260314-XXXX" (auto-generated)
+  userId:        ObjectId (ref: User),
+  items: [{
+    cakeId:      ObjectId (ref: Cake),
+    name:        String,           // Snapshot at time of order
+    image:       String,
+    caketype:    String,           // "cake" | "pastries"
+    type:        String,           // "eggless" | "egg"
+    priceOption: {
+      weight:    Number,           // e.g., 1000 (grams)
+      sellPrice: Number            // e.g., 599
+    },
+    quantity:    Number,
+    cakeMessage: String,           // Custom message on cake
+    addons: [{
+      addonId:   ObjectId (ref: Addon),
+      name:      String,
+      price:     Number,
+      quantity:  Number
+    }],
+    itemTotal:   Number            // (sellPrice * qty) + addons total
+  }],
+  deliveryAddress: {
+    fullName:    String,
+    phone:       String,
+    street:      String,
+    city:        String,
+    state:       String,
+    zipCode:     String,
+    landmark:    String             // Optional
+  },
+  deliveryDate:  Date,              // Requested delivery date
+  deliverySlot:  String,            // "10AM-12PM" | "12PM-3PM" | "3PM-6PM" | "6PM-9PM"
+  subtotal:      Number,            // Sum of all item totals
+  deliveryCharge: Number,           // Delivery fee
+  discount:      Number,            // Coupon / promo discount (default: 0)
+  totalAmount:   Number,            // subtotal + deliveryCharge - discount
+  payment: {
+    method:      String,            // "razorpay" | "cod" (cash on delivery)
+    status:      String,            // "pending" | "paid" | "failed" | "refunded"
+    razorpayOrderId:   String,      // Razorpay order ID (order_XXXXX)
+    razorpayPaymentId: String,      // Razorpay payment ID (pay_XXXXX)
+    razorpaySignature: String,      // Razorpay signature for verification
+    paidAt:      Date
+  },
+  orderStatus:   String,            // "placed" | "confirmed" | "preparing" | "out_for_delivery" | "delivered" | "cancelled"
+  statusHistory: [{
+    status:      String,
+    changedAt:   Date,
+    changedBy:   ObjectId (ref: User),  // Admin who changed status
+    note:        String                  // Optional note ("Cake is ready for pickup")
+  }],
+  specialInstructions: String,      // "No nuts please, allergy"
+  cancelReason:  String,            // If cancelled
+  createdAt:     Date,
+  updatedAt:     Date
+}
+```
+
+> **Order Status Flow:**
+> ```
+> placed → confirmed → preparing → out_for_delivery → delivered
+>                                                   ↘ cancelled (at any stage before delivered)
+> ```
+
 ---
 
-## 7. Authentication & Authorization
+## 6b. Razorpay Integration
+
+### Razorpay SDK Setup
+
+```typescript
+// lib/razorpay.ts
+import Razorpay from "razorpay";
+
+export const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID!,
+  key_secret: process.env.RAZORPAY_KEY_SECRET!,
+});
+```
+
+### Payment Flow
+
+```
+User clicks "Pay Now"
+        │
+        ▼
+┌──────────────────────┐
+│ 1. Create Order      │
+│    POST /api/user/    │
+│    payment/create     │
+│                      │
+│    • Validate cart   │
+│    • Calculate total │
+│    • Create Razorpay │
+│      order (server)  │
+│    • Save Order to   │
+│      MongoDB with    │
+│      status: pending │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│ 2. Razorpay Checkout │
+│    (Client-Side)     │
+│                      │
+│    Opens Razorpay    │
+│    payment modal:    │
+│    • UPI             │
+│    • Cards           │
+│    • Net Banking     │
+│    • Wallets         │
+└──────────┬───────────┘
+           │
+    ┌──────┴──────┐
+    │             │
+SUCCESS ▼      FAIL ▼
+┌────────────┐  ┌──────────┐
+│ 3. Verify  │  │ Show     │
+│ Signature  │  │ error    │
+│            │  │ message  │
+│ POST /api/ │  └──────────┘
+│ user/      │
+│ payment/   │
+│ verify     │
+└─────┬──────┘
+      │
+      ▼
+┌──────────────────────┐
+│ 4. Server verifies   │
+│    Razorpay signature│
+│                      │
+│    crypto.createHmac │
+│    ('sha256', secret)│
+│    .update(          │
+│      orderId + "|" + │
+│      paymentId       │
+│    )                 │
+│    .digest('hex')    │
+│    === signature     │
+└──────────┬───────────┘
+           │
+    ┌──────┴──────┐
+    │             │
+  VALID ▼    INVALID ▼
+┌────────────┐  ┌──────────────┐
+│ 5. Update  │  │ Mark payment │
+│ Order:     │  │ as "failed"  │
+│ payment:   │  │ Show error   │
+│  "paid"    │  └──────────────┘
+│ status:    │
+│ "placed"   │
+│            │
+│ Clear cart │
+│ Send email │
+└─────┬──────┘
+      │
+      ▼
+┌──────────────┐
+│ 6. Redirect  │
+│ to /order-   │
+│ success      │
+│              │
+│ Show order   │
+│ confirmation │
+│ + order ID   │
+└──────────────┘
+```
+
+### Razorpay Client Component
+
+```typescript
+// components/public/RazorpayButton.tsx
+"use client";
+
+import Script from "next/script";
+
+interface RazorpayButtonProps {
+  orderId: string;          // MongoDB order ID
+  razorpayOrderId: string;  // Razorpay order_XXXXX
+  amount: number;           // In paise (e.g., 59900 for ₹599)
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+}
+
+export function RazorpayButton({ orderId, razorpayOrderId, amount, ... }: RazorpayButtonProps) {
+  const handlePayment = () => {
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      amount,
+      currency: "INR",
+      name: "Sweet Delights Bakery",
+      description: `Order #${orderId}`,
+      order_id: razorpayOrderId,
+      handler: async (response) => {
+        // Verify payment on server
+        await fetch("/api/user/payment/verify", {
+          method: "POST",
+          body: JSON.stringify({
+            orderId,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          }),
+        });
+        window.location.href = `/order-success?id=${orderId}`;
+      },
+      prefill: { name: customerName, email: customerEmail, contact: customerPhone },
+      theme: { color: "#D4A574" },
+    };
+    const rzp = new (window as any).Razorpay(options);
+    rzp.open();
+  };
+
+  return (
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+      <button onClick={handlePayment}>Pay ₹{(amount / 100).toFixed(2)}</button>
+    </>
+  );
+}
+```
+
+### Payment Creation (Server)
+
+```typescript
+// api/user/payment/create/route.ts
+import { auth } from "@/lib/auth";
+import { razorpay } from "@/lib/razorpay";
+import { Order } from "@/lib/models/Order";
+import { Cart } from "@/lib/models/Cart";
+
+export async function POST(req: Request) {
+  const session = await auth();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { deliveryAddress, deliveryDate, deliverySlot, specialInstructions } = await req.json();
+
+  // Get user's cart & calculate total
+  const cart = await Cart.findOne({ userId: session.user.id }).populate("items.cakeId items.addons.addonId");
+  if (!cart || cart.items.length === 0) {
+    return Response.json({ error: "Cart is empty" }, { status: 400 });
+  }
+
+  const subtotal = cart.totalAmount;
+  const deliveryCharge = subtotal >= 500 ? 0 : 50; // Free delivery above ₹500
+  const totalAmount = subtotal + deliveryCharge;
+
+  // Create Razorpay order
+  const razorpayOrder = await razorpay.orders.create({
+    amount: totalAmount * 100, // Convert to paise
+    currency: "INR",
+    receipt: `receipt_${Date.now()}`,
+  });
+
+  // Create order in DB
+  const order = await Order.create({
+    orderId: `ORD-${new Date().toISOString().slice(0,10).replace(/-/g,"")}-${Math.random().toString(36).slice(2,6).toUpperCase()}`,
+    userId: session.user.id,
+    items: cart.items,
+    deliveryAddress,
+    deliveryDate,
+    deliverySlot,
+    subtotal,
+    deliveryCharge,
+    totalAmount,
+    payment: {
+      method: "razorpay",
+      status: "pending",
+      razorpayOrderId: razorpayOrder.id,
+    },
+    orderStatus: "placed",
+    statusHistory: [{ status: "placed", changedAt: new Date() }],
+    specialInstructions,
+  });
+
+  return Response.json({
+    orderId: order.orderId,
+    razorpayOrderId: razorpayOrder.id,
+    amount: totalAmount * 100,
+  });
+}
+```
+
+### Payment Verification (Server)
+
+```typescript
+// api/user/payment/verify/route.ts
+import crypto from "crypto";
+import { Order } from "@/lib/models/Order";
+import { Cart } from "@/lib/models/Cart";
+import { auth } from "@/lib/auth";
+
+export async function POST(req: Request) {
+  const session = await auth();
+  if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
+
+  // Verify signature
+  const body = razorpay_order_id + "|" + razorpay_payment_id;
+  const expectedSignature = crypto
+    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+    .update(body)
+    .digest("hex");
+
+  if (expectedSignature !== razorpay_signature) {
+    await Order.findOneAndUpdate({ orderId }, { "payment.status": "failed" });
+    return Response.json({ error: "Invalid payment signature" }, { status: 400 });
+  }
+
+  // Update order payment status
+  await Order.findOneAndUpdate(
+    { orderId },
+    {
+      "payment.status": "paid",
+      "payment.razorpayPaymentId": razorpay_payment_id,
+      "payment.razorpaySignature": razorpay_signature,
+      "payment.paidAt": new Date(),
+      orderStatus: "confirmed",
+      $push: { statusHistory: { status: "confirmed", changedAt: new Date() } },
+    }
+  );
+
+  // Clear user's cart
+  await Cart.findOneAndUpdate({ userId: session.user.id }, { items: [], totalAmount: 0 });
+
+  return Response.json({ success: true, message: "Payment verified" });
+}
+```
+
+---
+
+## 6c. Checkout Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          CHECKOUT FLOW                                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+ STEP 1: CART                STEP 2: CHECKOUT           STEP 3: PAYMENT
+ (/cart)                     (/checkout)                (Razorpay Modal)
+ ─────────                   ───────────                ────────────────
+
+ ┌────────────────────┐      ┌────────────────────┐     ┌──────────────────┐
+ │ CART PAGE          │      │ CHECKOUT PAGE       │     │ RAZORPAY MODAL   │
+ │                    │      │                    │     │                  │
+ │ ┌────────────────┐ │      │ Delivery Address:  │     │  ┌────────────┐  │
+ │ │ Red Velvet 1kg │ │      │ ┌────────────────┐ │     │  │  UPI       │  │
+ │ │ ₹599    Qty: 1 │ │      │ │ Full Name      │ │     │  │  Cards     │  │
+ │ │ Msg: "Happy    │ │      │ │ Phone          │ │     │  │  NetBank   │  │
+ │ │  Birthday!"    │ │      │ │ Street Address │ │     │  │  Wallets   │  │
+ │ │                │ │      │ │ City, State    │ │     │  └────────────┘  │
+ │ │ Addons:        │ │      │ │ Pincode        │ │     │                  │
+ │ │ + Candles  ₹49 │ │      │ │ Landmark       │ │     │  Amount: ₹648   │
+ │ │ + Topper  ₹99  │ │      │ └────────────────┘ │     │                  │
+ │ └────────────────┘ │      │                    │     │  [Pay Now]       │
+ │                    │      │ Delivery Date:     │     └──────────────────┘
+ │ ┌────────────────┐ │      │ [📅 Mar 16, 2026]  │
+ │ │ Pastry Box x2  │ │      │                    │          │
+ │ │ ₹199    Qty: 2 │ │      │ Delivery Slot:     │          │ SUCCESS
+ │ └────────────────┘ │      │ [10AM-12PM ▼]      │          │
+ │                    │      │                    │          ▼
+ │ ─────────────────  │      │ Special Notes:     │     ┌──────────────────┐
+ │ Subtotal:   ₹1146 │      │ [No nuts - allergy]│     │ ORDER SUCCESS    │
+ │ Delivery:     ₹0  │      │                    │     │ (/order-success) │
+ │ ─────────────────  │      │ ┌──────────────┐   │     │                  │
+ │ Total:     ₹1146  │      │ │ ORDER SUMMARY│   │     │ ✓ Order Placed!  │
+ │                    │      │ │              │   │     │                  │
+ │ [Checkout →]       │──────│ │ Items:  ₹1146│   │     │ Order #ORD-2026  │
+ └────────────────────┘      │ │ Delivery: ₹0│   │     │   0314-A7B2      │
+                             │ │ Total: ₹1146│   │     │                  │
+                             │ └──────────────┘   │     │ Track your order │
+                             │                    │     │ at /orders/[id]  │
+                             │ [Pay with Razorpay]│     │                  │
+                             └────────────────────┘     │ [View Order]     │
+                                                        └──────────────────┘
+
+
+ STEP 4: ORDER TRACKING
+ (/orders/[id])
+ ──────────────────────
+
+ ┌─────────────────────────────────────────────────────┐
+ │ ORDER #ORD-20260314-A7B2                            │
+ │                                                      │
+ │ Status Timeline:                                     │
+ │                                                      │
+ │  ●──────●──────●──────○──────○                       │
+ │  Placed  Confirmed Preparing  Out for   Delivered    │
+ │  ✓       ✓         ✓ (now)   Delivery              │
+ │                                                      │
+ │ Items:                                               │
+ │ • Red Velvet Cake 1kg      ₹599                     │
+ │   + Birthday Candles        ₹49                     │
+ │   + Gold Topper             ₹99                     │
+ │   Message: "Happy Birthday!"                        │
+ │ • Pastry Box x2             ₹398                    │
+ │                                                      │
+ │ Delivery: Mar 16, 2026 (10AM-12PM)                  │
+ │ Address: 42 Baker Street, Mumbai 400001              │
+ │                                                      │
+ │ Payment: Razorpay (Paid ✓)                          │
+ │ Total: ₹1146                                        │
+ └─────────────────────────────────────────────────────┘
+```
 
 ### Strategy: NextAuth.js v5 + Middleware
 
@@ -652,12 +1263,15 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const isAdminRoute = pathname.startsWith("/admin");
   const isApiAdminRoute = pathname.startsWith("/api/admin");
-  const isLoginPage = pathname === "/admin/login";
+  const isUserRoute = pathname.startsWith("/profile") || pathname.startsWith("/cart") || pathname.startsWith("/checkout") || pathname.startsWith("/orders") || pathname.startsWith("/order-success");
+  const isApiUserRoute = pathname.startsWith("/api/user");
+  const isLoginPage = pathname === "/admin/login" || pathname === "/login";
+  const isRegisterPage = pathname === "/register";
 
-  // Allow login page
-  if (isLoginPage) return NextResponse.next();
+  // Allow login & register pages
+  if (isLoginPage || isRegisterPage) return NextResponse.next();
 
-  // Protect admin routes
+  // Protect admin routes — admin or superadmin only
   if (isAdminRoute || isApiAdminRoute) {
     if (!req.auth) {
       return NextResponse.redirect(new URL("/admin/login", req.url));
@@ -667,11 +1281,18 @@ export default auth((req) => {
     }
   }
 
+  // Protect user routes — any authenticated user
+  if (isUserRoute || isApiUserRoute) {
+    if (!req.auth) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
+
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*", "/profile/:path*", "/cart/:path*", "/checkout/:path*", "/orders/:path*", "/order-success/:path*", "/api/user/:path*"],
 };
 ```
 
@@ -724,10 +1345,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
 | Layer | Protection |
 |-------|-----------|
-| **Middleware** | Redirects unauthenticated users away from `/admin/*` |
+| **Middleware** | Redirects unauthenticated users away from `/admin/*` and `/profile/*` |
 | **API Route Handlers** | Verify session + role before any mutation |
 | **Server Actions** | Verify session inside each action |
-| **UI** | Conditionally render admin UI (defense in depth) |
+| **UI** | Conditionally render admin/user UI (defense in depth) |
+| **Role Check** | `user` can only access own profile/reviews/wishlist; `admin`/`superadmin` can access CMS |
 
 ---
 
@@ -747,7 +1369,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 │  Header    │   │  ┌────┐ ┌────┐ ┌────┐ ┌────┐    │     │
 │  Hero      │   │  │Pages│ │Media│ │Posts│ │Visits│  │     │
 │  About     │   │  │ 12  │ │ 48  │ │ 23 │ │1.2K │  │     │
-│  Favorites │   │  └────┘ └────┘ └────┘ └────┘    │     │
+│  Cakes     │   │  └────┘ └────┘ └────┘ └────┘    │     │
 │  Updates   │   └──────────────────────────────────┘     │
 │  Visit     │                                            │
 │  ─────────  │   ┌──────────────────────────────────┐     │
@@ -822,7 +1444,10 @@ Admin opens section
 | **Header** | Upload logo, add/reorder/hide nav links, toggle sticky, edit CTA button |
 | **Hero** | Add/edit/remove slides, upload backgrounds, set overlay, autoplay speed |
 | **About** | Edit story text (rich editor), manage team members, update stats |
-| **Favorites** | CRUD cakes, set featured, manage categories, drag-to-reorder |
+| **Cakes** | CRUD cakes/pastries, set weight-based pricing, manage categories, set featured, drag-to-reorder, view reviews |
+| **Addons** | CRUD addon items (candles, toppers, decorations, packaging, extras), set price, stock, availability |
+| **Orders** | View all orders, filter by status/date, update order status (confirm, preparing, out for delivery, delivered), cancel + refund |
+| **Users** | View all registered users, toggle active/inactive, view order history per user |
 | **Updates** | CRUD blog posts, rich text editor, schedule publishing |
 | **Visit** | Edit address, business hours, phone, email, map embed |
 | **Footer** | Edit sections/links, social links, copyright text, newsletter toggle |
@@ -910,7 +1535,7 @@ Admin opens section
 | Header | Server Component | `revalidateTag("header")` |
 | Hero | Server Component + Client carousel | `revalidateTag("hero")` |
 | About | Server Component | `revalidateTag("about")` |
-| Favorites | Server Component | `revalidateTag("favorites")` |
+| Favorites (Cakes) | Server Component | `revalidateTag("cakes")` |
 | Updates | Server Component | `revalidateTag("updates")` |
 | Visit | Server Component | `revalidateTag("visit")` |
 | Footer | Server Component | `revalidateTag("footer")` |
@@ -939,12 +1564,12 @@ PUT    /api/admin/hero            → Update hero config
 GET    /api/admin/about           → Fetch about content
 PUT    /api/admin/about           → Update about content
 
-# Favorites (CRUD)
-GET    /api/admin/favorites       → List all favorites
-POST   /api/admin/favorites       → Create new favorite
-PUT    /api/admin/favorites/[id]  → Update favorite
-DELETE /api/admin/favorites/[id]  → Delete favorite
-PATCH  /api/admin/favorites/reorder → Reorder favorites
+# Cakes / Products (CRUD)
+GET    /api/admin/cakes           → List all cakes
+POST   /api/admin/cakes           → Create new cake
+PUT    /api/admin/cakes/[id]      → Update cake
+DELETE /api/admin/cakes/[id]      → Delete cake
+PATCH  /api/admin/cakes/reorder   → Reorder featured cakes
 
 # Updates (CRUD)
 GET    /api/admin/updates         → List all updates
@@ -971,6 +1596,23 @@ GET    /api/admin/media           → List media (paginated)
 POST   /api/admin/media           → Upload media
 DELETE /api/admin/media/[id]      → Delete media
 
+# Addons (CRUD) — Admin managed
+GET    /api/admin/addons           → List all addons
+POST   /api/admin/addons           → Create new addon
+PUT    /api/admin/addons/[id]      → Update addon
+DELETE /api/admin/addons/[id]      → Delete addon
+
+# Orders — Admin managed
+GET    /api/admin/orders           → List all orders (paginated, filterable)
+GET    /api/admin/orders/[id]      → Get single order detail
+PUT    /api/admin/orders/[id]      → Update order status
+PATCH  /api/admin/orders/[id]/cancel → Cancel order + initiate refund
+
+# Users — Admin managed
+GET    /api/admin/users            → List all users (paginated)
+GET    /api/admin/users/[id]       → Get single user detail
+PUT    /api/admin/users/[id]       → Update user (toggle active, change role)
+
 # Settings
 GET    /api/admin/settings        → Fetch site settings
 PUT    /api/admin/settings        → Update site settings
@@ -980,7 +1622,47 @@ PUT    /api/admin/settings        → Update site settings
 
 ```
 GET    /api/public/content        → Fetch all homepage content (batched)
+GET    /api/public/cakes          → Fetch cakes (with filters: caketype, type, category)
+GET    /api/public/cakes/[slug]   → Fetch single cake with reviews
 GET    /api/public/pages/[slug]   → Fetch single custom page
+```
+
+### User API Endpoints (Auth Required — Any Authenticated User)
+
+```
+# Auth
+POST   /api/user/register         → Register new user (role: "user")
+
+# Profile
+GET    /api/user/profile           → Get own profile
+PUT    /api/user/profile           → Update own profile
+
+# Wishlist
+GET    /api/user/wishlist          → Get user's wishlisted cakes
+POST   /api/user/wishlist          → Add cake to wishlist
+DELETE /api/user/wishlist/[cakeId] → Remove cake from wishlist
+
+# Reviews
+GET    /api/user/reviews           → Get user's own reviews
+POST   /api/user/reviews           → Submit a review on a cake
+PUT    /api/user/reviews/[id]      → Edit own review
+DELETE /api/user/reviews/[id]      → Delete own review
+
+# Cart
+GET    /api/user/cart              → Get user's cart
+POST   /api/user/cart              → Add item to cart (cake + weight + addons + message)
+PUT    /api/user/cart/[itemIndex]  → Update cart item (quantity, addons)
+DELETE /api/user/cart/[itemIndex]  → Remove item from cart
+DELETE /api/user/cart              → Clear entire cart
+
+# Checkout & Orders
+POST   /api/user/checkout          → Create order from cart + Razorpay order
+GET    /api/user/orders            → Get user's order history
+GET    /api/user/orders/[id]       → Get single order detail
+
+# Payment (Razorpay)
+POST   /api/user/payment/create    → Create Razorpay order (returns razorpay_order_id)
+POST   /api/user/payment/verify    → Verify Razorpay payment signature
 ```
 
 ### Preferred Approach: Server Actions
@@ -988,7 +1670,7 @@ GET    /api/public/pages/[slug]   → Fetch single custom page
 For the admin panel, **Server Actions** are preferred over Route Handlers for form submissions:
 
 ```typescript
-// lib/actions/hero.actions.ts
+// lib/actions/hero.actions.ts (Admin-only action)
 "use server";
 
 import { auth } from "@/lib/auth";
@@ -1006,6 +1688,39 @@ export async function updateHero(formData: FormData) {
   await Hero.findOneAndUpdate({}, data, { upsert: true });
 
   revalidateTag("hero");
+  return { success: true };
+}
+```
+
+```typescript
+// lib/actions/reviews.actions.ts (User action)
+"use server";
+
+import { auth } from "@/lib/auth";
+import { Cake } from "@/lib/models/Cake";
+import { revalidateTag } from "next/cache";
+
+export async function submitReview(cakeId: string, data: { rating: number; comment: string }) {
+  const session = await auth();
+  if (!session) throw new Error("Unauthorized");
+
+  const cake = await Cake.findById(cakeId);
+  if (!cake) throw new Error("Cake not found");
+
+  cake.reviews.push({
+    userId: session.user.id,
+    username: session.user.name,
+    rating: data.rating,
+    comment: data.comment,
+  });
+
+  // Recalculate average rating
+  const totalRatings = cake.reviews.reduce((sum, r) => sum + r.rating, 0);
+  cake.averageRating = totalRatings / cake.reviews.length;
+  cake.totalReviews = cake.reviews.length;
+
+  await cake.save();
+  revalidateTag("cakes");
   return { success: true };
 }
 ```
@@ -1206,6 +1921,10 @@ CLOUDINARY_CLOUD_NAME=your-cloud
 CLOUDINARY_API_KEY=your-key
 CLOUDINARY_API_SECRET=your-secret
 
+RAZORPAY_KEY_ID=rzp_test_XXXXXXXXXX
+RAZORPAY_KEY_SECRET=your-razorpay-secret
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_XXXXXXXXXX
+
 # Optional
 NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
 ```
@@ -1236,6 +1955,35 @@ async function seedAdmin() {
 seedAdmin();
 ```
 
+### User Registration Flow
+
+New users register via `/register` with role `"user"` by default:
+
+```typescript
+// api/user/register/route.ts
+import bcrypt from "bcryptjs";
+import { User } from "@/lib/models/User";
+import { connectDB } from "@/lib/db";
+
+export async function POST(req: Request) {
+  await connectDB();
+  const { name, email, password } = await req.json();
+
+  const existingUser = await User.findOne({ email });
+  if (existingUser) return Response.json({ error: "Email already in use" }, { status: 400 });
+
+  await User.create({
+    name,
+    email,
+    password: await bcrypt.hash(password, 12),
+    role: "user",
+    isActive: true,
+  });
+
+  return Response.json({ success: true, message: "Registration successful" });
+}
+```
+
 ---
 
 ## 15. Future Feature Suggestions
@@ -1244,18 +1992,20 @@ seedAdmin();
 
 | Feature | Description |
 |---------|-------------|
-| **Online Ordering** | Add to cart, checkout flow with Stripe/Razorpay integration |
+| **Online Ordering** | ~~Cart + checkout + Razorpay~~ ✅ Implemented — full cart, checkout, Razorpay payment flow |
+| **Addon Items** | ~~Add-on items~~ ✅ Implemented — candles, toppers, decorations, packaging, extras (admin-managed) |
+| **Order Management** | ~~Admin order management~~ ✅ Implemented — view/update status, cancel + refund |
+| **Order Tracking** | ~~Status tracking~~ ✅ Implemented — status timeline (placed → confirmed → preparing → out for delivery → delivered) |
+| **Pricing Tiers** | ~~Size-based pricing~~ ✅ Implemented via weight-based `prices` array in Cake model |
 | **Custom Cake Builder** | Interactive cake customizer (layers, flavors, toppings, message) |
-| **Order Tracking** | Real-time order status updates for customers |
-| **Pricing Tiers** | Size-based pricing (6", 8", 10") with automatic calculation |
 | **Coupon System** | Discount codes, seasonal promotions, first-order discounts |
 
 ### Phase 3 — Customer Engagement
 
 | Feature | Description |
 |---------|-------------|
-| **Customer Reviews** | Star ratings + photo reviews on cakes |
-| **Wishlist / Favorites** | Customers can save their favorite cakes |
+| **Customer Reviews** | ~~Star ratings + reviews~~ ✅ Implemented via embedded `reviews` in Cake model |
+| **Wishlist / Favorites** | ~~Customers can save cakes~~ ✅ Implemented via `wishlist` array in User model |
 | **Newsletter** | Email subscription with Mailchimp/Resend integration |
 | **Live Chat** | Tawk.to or custom chat widget for cake inquiries |
 | **Social Media Feed** | Instagram feed embed showing latest cake photos |
@@ -1301,18 +2051,29 @@ seedAdmin();
 [ ] Initialize Next.js 15 project with TypeScript
 [ ] Set up Tailwind CSS 4 + custom theme
 [ ] Configure MongoDB connection (lib/db.ts)
-[ ] Define all Mongoose models
+[ ] Define all Mongoose models (User, Cake, Addon, Cart, Order, + CMS models)
 [ ] Set up NextAuth.js v5 with credentials provider
-[ ] Create middleware for admin route protection
+[ ] Create middleware for admin + user route protection
 [ ] Seed initial admin user
+[ ] Build user registration + login flow
 [ ] Build admin layout (sidebar + topbar)
 [ ] Build admin CRUD pages for each section
+[ ] Build admin addon management (CRUD candles, toppers, etc.)
+[ ] Build admin order management (view, status updates, cancel/refund)
+[ ] Build admin user management (view, toggle active, roles)
 [ ] Build public layout (header + footer from DB)
-[ ] Build homepage sections (Hero, Favorites, Updates, Visit)
+[ ] Build homepage sections (Hero, Featured Cakes, Updates, Visit)
+[ ] Build cake detail page with reviews + add to cart
+[ ] Build cart page (add/remove items, addons, cake message)
+[ ] Build checkout page (address, delivery date/slot, order summary)
+[ ] Set up Razorpay integration (payment create + verify)
+[ ] Build order confirmation + tracking pages
 [ ] Set up Cloudinary for media uploads
 [ ] Add Framer Motion animations
 [ ] Configure SEO metadata
 [ ] Deploy to Vercel + connect MongoDB Atlas
+[ ] Configure Razorpay production keys
+[ ] Test full ordering flow end-to-end
 [ ] Test admin flow end-to-end
 [ ] Test public site performance (Lighthouse)
 ```
